@@ -96,9 +96,9 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
               "search_keyword": keyword,
               "date_range": date_range,
               "hit_num": -1,
-              "top_url": '',
-              "top_title": '',
-               }
+              # "top_url": '',
+              # "top_title": '',
+    }
     for attempt in range(1, num_tries+1):
         try:
             baidu_parser = bs(os.popen(beat_it), "html.parser")
@@ -111,14 +111,14 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
                 "href": re.compile(r"http://www.baidu.com/link\?url=*")
             })
             if a_tag:
-                baidu_jump_link = a_tag.get("href", "")
-                if not baidu_jump_link:
-                    print "No Baidu Jump Link"
-                    return {}
+                # baidu_jump_link = a_tag.get("href", "")
+                # if not baidu_jump_link:
+                #     print "No Baidu Jump Link"
+                #     return {}
                 if baidu_jump_link:
-                    third_url = requests.get(baidu_jump_link).url
-                    data["top_url"] = third_url if third_url else baidu_jump_link
-                    data["top_title"] = a_tag.text
+                    # third_url = requests.get(baidu_jump_link).url
+                    # data["top_url"] = third_url if third_url else baidu_jump_link
+                    # data["top_title"] = a_tag.text
                 num_tag = baidu_parser.find("div", {"class": "nums"})
                 if num_tag:
                     num_str = re.search(re.compile(r'((\d*),?)*(\d+)'), num_tag.text)
