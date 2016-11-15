@@ -150,6 +150,4 @@ def test_parse_baidu_results():
     for kw in list_of_kw:
         for date_range in ['week', 'day', 'month']:
             print parse_baidu_search_page(kw, date_range)
-
-
-test_parse_baidu_results()
+            
