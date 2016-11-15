@@ -89,10 +89,6 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
         kw=urllib.quote(keyword), 
         start=start_timestamp, 
         end=end_timestamp,
-        # host=ABUYUN_HOST,
-        # port=ABUYUN_PORT,
-        # user=ABUYUN_USER,
-        # passwd=ABUYUN_PASSWD
     )
     url, post_data = curl_str2post_data(beat_it)
     data = { "createdate": dt.now().strftime("%Y-%m-%d %H:%M:%S"), 
@@ -150,4 +146,3 @@ def test_parse_baidu_results():
     for kw in list_of_kw:
         for date_range in ['week', 'day', 'month']:
             print parse_baidu_search_page(kw, date_range)
-            
