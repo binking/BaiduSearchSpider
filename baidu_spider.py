@@ -72,23 +72,35 @@ def curl_str2post_data(baidu_curl):
         traceback.print_exc()
     return url, post_data
 
+def parse_baidu_search_page_v2(keyword, date_range, num_tries=3, wait_time=10):
+
+
+
+
 
 def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
     """
-    Given keyword, form the Sougou search url and parse the search results page
+    Given keyword, form the Baidu search url and parse the search results page
     Formatted by Chrome: https://www.baidu.com/s?ie=UTF-8&wd=%E5%90%8E%E8%A1%97%E7%94%B7%E5%AD%A9
     param keywords:list of keywords
     return : {err_no: , err_msg: , data: 
         { uri: , createdate:, search_url:, }}
     """
-    print "Sougou searching for ", keyword, "in 1 ", date_range
+    print "Baidu searching for ", keyword, "in 1 ", date_range
     err_no = SUCCESSED; err_msg = "Successed"
     # url = QUERY_URL_DICT[date_range].format(kw=urllib.quote(keyword))
     start_timestamp, end_timestamp = gen_gpc(date_range)
+    # import ipdb; ipdb.set_trace()
+    try:
+        kw = urllib.quote(keyword.encode('utf8'))
+    except UnicodeEncodeError as e:
+        print "Quoting Chinese keyword to url string FAILED"
+        kw = keyword
     beat_it = BAIDU_CURL_STR.format(
-        kw=urllib.quote(keyword), 
+        # kw=urllib.quote(keyword), 
+        kw=kw,
         start=start_timestamp, 
-        end=end_timestamp,
+        end=end_timestamp
     )
     url, post_data = curl_str2post_data(beat_it)
     data = { "createdate": dt.now().strftime("%Y-%m-%d %H:%M:%S"), 
@@ -96,8 +108,6 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
               "search_keyword": keyword,
               "date_range": date_range,
               "hit_num": -1,
-              # "top_url": '',
-              # "top_title": '',
     }
     for attempt in range(1, num_tries+1):
         try:
@@ -115,7 +125,7 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
                 # if not baidu_jump_link:
                 #     print "No Baidu Jump Link"
                 #     return {}
-                if baidu_jump_link:
+                # if baidu_jump_link:
                     # third_url = requests.get(baidu_jump_link).url
                     # data["top_url"] = third_url if third_url else baidu_jump_link
                     # data["top_title"] = a_tag.text
@@ -124,17 +134,16 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
                     num_str = re.search(re.compile(r'((\d*),?)*(\d+)'), num_tag.text)
                     data["hit_num"] = str_2_int(num_str.group(0)) if num_str else -1
             else:  # no result
-                with open('Baidu_%s_%s.html' % (keyword, dt.now()), 'w') as fw:
+                with open('./html/Baidu_%s_%s.html' % (keyword, dt.now()), 'w') as fw:
                     # null_parser = BS(open('2016-11-15 16:11:06.167554_朴施妍1114生日快乐.html', 'r').read(), "html.parser")
                     print >>fw, baidu_parser  # save the unknow html
-                print "No Baidu Jump Link"
                 return {}
             break # success and jump out of loop
         except Exception as e:
             traceback.print_exc()
             err_no = FAILED
             err_msg = e.message
-            change_tunnel()
+            # change_tunnel()
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Parsed topic %s Failed..." % keyword
             handle_sleep(5*attempt)
     return {"err_no": err_no, "err_msg": err_msg, "data": data}
@@ -144,5 +153,5 @@ def test_parse_baidu_results():
     # list_of_kw = ["海贼王", "后街男孩", "百度", "百度音乐", "MySQL deadlock caused by concurrent INSERT and SELECT"]
     list_of_kw = ["MySQL deadlock caused by concurrent INSERT and SELECTgdfghfhgfh"]  # no results
     for kw in list_of_kw:
-        for date_range in ['week', 'day', 'month']:
+        for date_range in ['day', 'week', 'month']:
             print parse_baidu_search_page(kw, date_range)
