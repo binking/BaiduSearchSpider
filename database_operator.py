@@ -42,7 +42,7 @@ def connect_database():
         time.sleep(seconds)
   
 
-def write_baidu_topic_into_db(cursor, topic_info):
+def write_baidu_topic_into_db(conn, topic_info):
     """
     Update two tables: wechatsearchtopic and wechatsearcharticlerelation
     param topic_info(dict): createdate, uri, search_url, search_keyword, urls
@@ -57,18 +57,11 @@ def write_baidu_topic_into_db(cursor, topic_info):
     date_range = topic_info.get('date_range', '')
     hit_num = topic_info.get('hit_num', -1)
 
-    deprecate_topic = """
-        UPDATE baidusearchtopic
-        SET is_up2date='N' 
-        WHERE search_keyword=%s
-        AND date_range=%s
+    deprecate_topic = """UPDATE baidusearchtopic SET is_up2date='N'
+        WHERE search_keyword=%s AND date_range=%s AND is_up2date='Y'
     """
-    may_existed_topic = """
-        UPDATE baidusearchtopic
-        SET is_up2date='Y' 
-        WHERE search_date=%s 
-        AND search_keyword=%s
-        AND date_range=%s
+    may_existed_topic = """UPDATE baidusearchtopic SET is_up2date='Y' 
+        WHERE search_date=%s AND search_keyword=%s AND date_range=%s
     """
     insert_new_topic = """
         INSERT INTO baidusearchtopic 
@@ -77,12 +70,15 @@ def write_baidu_topic_into_db(cursor, topic_info):
     """ % (topic_uri, topic_s_url, topic_date, topic_date, topic_kw, date_range, hit_num)
     try:
         # search_date and search_url ensure newsest articles
+        cursor = conn.cursor()
         cursor.execute(deprecate_topic, (topic_kw, date_range))
+        conn.commit()
         is_existed = cursor.execute(may_existed_topic, 
             (topic_date, topic_kw, date_range))
         if not is_existed:
             print "\nInserting ",
             cursor.execute(insert_new_topic)
+            conn.commit()
         print "$"*20, "Write Baidu topic succeeded..."
     except (mdb.ProgrammingError, mdb.OperationalError) as e:
         traceback.print_exc()
@@ -104,18 +100,19 @@ def write_baidu_topic_into_db(cursor, topic_info):
     return is_succeed
 
 
-def read_topics_from_db(cursor, start_date):
+def read_topics_from_db(conn, start_date):
     """
     Read unchecked topics from database, return list of topics
     param start_date(str): YYYY-MM-DD
     """
     select_topic = """
-        SELECT DISTINCT search_keyword FROM baidusearchtopic
-        WHERE STR_TO_DATE(search_date,"%Y-%m-%d %H:%i:%s") > '{}'
-        ORDER BY STR_TO_DATE(search_date,"%Y-%m-%d %H:%i:%s") DESC
-        LIMIT 100
+        SELECT DISTINCT title FROM topicinfo
+        WHERE theme LIKE '新浪微博_热门话题%'
+        AND STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") > '{}'
+        ORDER BY STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") DESC
     """.format(start_date)
     try:
+        cursor = conn.cursor()
         # read search keywords from table topicinfo
         cursor.execute(select_topic)  # filter by date: >_< , include >, exclude <
         topicinfo_res = cursor.fetchall()

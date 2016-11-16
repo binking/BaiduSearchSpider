@@ -3,7 +3,7 @@ import sys, time, os, signal, traceback
 from datetime import datetime as dt, timedelta
 import MySQLdb as mdb
 import multiprocessing as mp
-from baidu_spider import parse_baidu_search_page
+from baidu_spider_v2 import parse_baidu_search_page_v2
 from database_operator import (
     connect_database,
     write_baidu_topic_into_db,
@@ -23,8 +23,9 @@ def topic_info_generator(topic_jobs, topic_results):
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Urls Process pid is %d" % (cp.pid)
         kw = topic_jobs.get()
         for dr in DATE_ERANGES:  # do 3 times search, look whether solve the problem: day>week>month
-            baidu_result = parse_baidu_search_page(kw, dr)
-            topic_results.put(baidu_result['data'])
+            baidu_result = parse_baidu_search_page_v2(kw, dr)
+            if baidu_result:  # before you used result returned from funciton, check it
+                topic_results.put(baidu_result['data'])
         topic_jobs.task_done()
     
 
@@ -35,14 +36,15 @@ def topic_db_writer(topic_results):
     cp = mp.current_process()
     while True:
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Topics Process pid is %d" % (cp.pid)
+        topic_record = topic_results.get()
         try:
             conn = connect_database()
-            topic_record = topic_results.get()
             write_status = write_baidu_topic_into_db(conn, topic_record)
             # print topic_record.items()
             topic_results.task_done()
         except Exception as e:
             traceback.print_exc()
+            print dt.now().strftime("%Y-%m-%d %H:%M:%S")
         finally:
             conn.close()
     
@@ -70,6 +72,7 @@ def add_topic_jobs(target):
             print dt.now().strftime("%Y-%m-%d %H:%M:%S")
     except Exception as e:
         traceback.print_exc()
+        print dt.now().strftime("%Y-%m-%d %H:%M:%S")
     finally:
         conn.close()
         return todo
@@ -81,7 +84,7 @@ def run_all_worker():
         topic_jobs = mp.JoinableQueue()
         topic_results = mp.JoinableQueue()
         create_processes(topic_info_generator, (topic_jobs, topic_results), 1)
-        create_processes(topic_db_writer, (topic_results,), 3)
+        create_processes(topic_db_writer, (topic_results,), 2)
 
         cp = mp.current_process()
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
@@ -103,7 +106,7 @@ def test_parse_baidu_results():
         conn = connect_database()
         if not conn:
             return False
-        list_of_kw = read_topics_from_db(conn, '2016-11-15')
+        list_of_kw = read_topics_from_db(conn)
         for kw in list_of_kw:
             for dr in DATE_ERANGES:  # do 3 times search, look whether solve the problem: day>week>month
                 baidu_result = parse_baidu_search_page(kw, dr)

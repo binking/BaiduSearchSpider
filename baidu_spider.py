@@ -28,10 +28,12 @@ ABUYUN_USER = "H778U07K14M4250P"
 ABUYUN_PASSWD = "FE04DDEF88A0CC9B"
 ABUYUN_HOST = "proxy.abuyun.com"
 ABUYUN_PORT = "9010"
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/600.5.17 (KHTML, like Gecko) Version/8.0.5 Safari/600.5.17'}
 
 
 BAIDU_CURL_STR = """curl 'https://www.baidu.com/s?ie=utf-8&mod=1&isbd=1&isid=73D1C879AE736221&ie=utf-8&f=8&rsv_bp=1&tn=baidu&wd={kw}&rsv_pq=cbbdd19c00019da4&rsv_t=f3caeinSf3EIdOwk9OYq11erzbHt0TEYxnpR%2BF2TtmSJA%2FT875hqGQSVIWk&rqlang=cn&rsv_enter=1&gpc=stf={start},{end}|stftype=1&tfflag=1&rsv_sid=undefined&_ss=1&clist=&hsug=&f4s=1&csor=3&_cr1=29723' -H 'Cookie: BAIDUID=73D1C894D6EA1C8C35BAA51C16979AE7:FG=1; BIDUPSID=73D1C894D6EA1C8C35BAA51C16979AE7; PSTM=1478583844; __cfduid=dd3986b6e9eb2e4dd47d954b8a76ae6801478744553; BDUSS=GVkYkdnSWNzeEdUb2FyMHNZNTRRR3hsZFVCblhhLXA0YWplYi1CNkZpM0RmVXRZSVFBQUFBJCQAAAAAAAAAAAEAAABPwzQQOTY1MDc2Mzc3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMPwI1jD8CNYV; BD_CK_SAM=1; PSINO=2; H_PS_PSSID=1445_21078_21454_21409_21377_21526_21190_20930; BD_UPN=12314753; sugstore=1; H_PS_645EC=f3caeinSf3EIdOwk9OYq11erzbHt0TEYxnpR%2BF2TtmSJA%2FT875hqGQSVIWk' -H 'is_xhr: 1' -H 'Accept-Encoding: gzip, deflate, sdch, br' -H 'Accept-Language: zh-CN,zh;q=0.8' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36' -H 'Accept: */*' -H 'Referer: https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&tn=baidu&wd={kw}&rsv_pq=cbbdd19c00019da4&rsv_t=f3caeinSf3EIdOwk9OYq11erzbHt0TEYxnpR%2BF2TtmSJA%2FT875hqGQSVIWk&rqlang=cn&rsv_enter=1&gpc=stf={start},{end}|stftype=1&tfflag=1' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' -H 'is_referer: https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&tn=baidu&wd={kw}&rsv_pq=cbbdd19c00019da4&rsv_t=bf0dy07frZ1UKtJW01IYbfJGeI%2BhOMsDi%2BC%2BEQBWBb8oxFu2c53n31gktrg&rqlang=cn' --compressed"""
 # %3D:=; %2C:,; %7C:|;
+# --connect-timeout
 
 def handle_sleep(seconds):
     print "Sleeping %d seconds " % seconds, 'zZ'*10
@@ -72,11 +74,6 @@ def curl_str2post_data(baidu_curl):
         traceback.print_exc()
     return url, post_data
 
-def parse_baidu_search_page_v2(keyword, date_range, num_tries=3, wait_time=10):
-
-
-
-
 
 def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
     """
@@ -96,23 +93,19 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
     except UnicodeEncodeError as e:
         print "Quoting Chinese keyword to url string FAILED"
         kw = keyword
-    beat_it = BAIDU_CURL_STR.format(
-        # kw=urllib.quote(keyword), 
-        kw=kw,
-        start=start_timestamp, 
-        end=end_timestamp
-    )
+    beat_it = BAIDU_CURL_STR.format(kw=kw, start=start_timestamp, end=end_timestamp)
     url, post_data = curl_str2post_data(beat_it)
     data = { "createdate": dt.now().strftime("%Y-%m-%d %H:%M:%S"), 
-              "uri": url, "search_url": url, 
-              "search_keyword": keyword,
-              "date_range": date_range,
-              "hit_num": -1,
+              "uri": url, "search_url": url, "search_keyword": keyword,
+              "date_range": date_range, "hit_num": -1,
     }
     for attempt in range(1, num_tries+1):
         try:
             baidu_parser = bs(os.popen(beat_it), "html.parser")
-            none_res_div = baidu_parser.find("div", {"class": r"content_none"})
+            if len(baidu_parser.find_all()) < 10:
+                print baidu_parser
+                continue
+            none_res_div = baidu_parser.find("div", {"class": "content_none"})
             if none_res_div:
                 data["hit_num"] = 0
                 break
@@ -134,10 +127,11 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
                     num_str = re.search(re.compile(r'((\d*),?)*(\d+)'), num_tag.text)
                     data["hit_num"] = str_2_int(num_str.group(0)) if num_str else -1
             else:  # no result
+                err_no = FAILED
+                err_msg = e.message
                 with open('./html/Baidu_%s_%s.html' % (keyword, dt.now()), 'w') as fw:
                     # null_parser = BS(open('2016-11-15 16:11:06.167554_朴施妍1114生日快乐.html', 'r').read(), "html.parser")
                     print >>fw, baidu_parser  # save the unknow html
-                return {}
             break # success and jump out of loop
         except Exception as e:
             traceback.print_exc()
@@ -150,8 +144,9 @@ def parse_baidu_search_page(keyword, date_range, num_tries=3, wait_time=10):
 
 
 def test_parse_baidu_results():
-    # list_of_kw = ["海贼王", "后街男孩", "百度", "百度音乐", "MySQL deadlock caused by concurrent INSERT and SELECT"]
-    list_of_kw = ["MySQL deadlock caused by concurrent INSERT and SELECTgdfghfhgfh"]  # no results
+    list_of_kw = ["海贼王", "后街男孩", "百度", "百度音乐", "MySQL deadlock caused by concurrent INSERT and SELECT"]
+    # list_of_kw = ["MySQL deadlock caused by concurrent INSERT and SELECTgdfghfhgfh"]  # no results
     for kw in list_of_kw:
         for date_range in ['day', 'week', 'month']:
             print parse_baidu_search_page(kw, date_range)
+            # print parse_baidu_search_page_v2(kw, date_range)
