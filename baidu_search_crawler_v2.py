@@ -88,7 +88,7 @@ def run_all_worker():
         cp = mp.current_process()
         one_week_ago = (dt.today() - timedelta(6)).strftime("%Y-%m-%d")
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
-        num_of_topics = add_topic_jobs(target=topic_jobs, one_week_ago)
+        num_of_topics = add_topic_jobs(target=topic_jobs, start_date=one_week_ago)
         print "<"*10, 
         print "There are %d topics to process from %s" % (num_of_topics, one_week_ago), 
         print ">"*10
