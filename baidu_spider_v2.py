@@ -5,7 +5,6 @@ import json, traceback, bs4
 from datetime import datetime as dt, timedelta
 from urlparse import urlparse, parse_qs
 from bs4 import BeautifulSoup as bs
-from abuyun_proxy import change_tunnel
 from config import *
 from utils import *
 from requests.exceptions import (
@@ -65,24 +64,24 @@ def parse_baidu_search_page_v2(keyword, date_range, proxy={},num_tries=3, wait_t
             else:  # wrong result
                 with open('./html/Baidu_%s_%s.html' % (keyword, dt.now()), 'w') as fw:
                     # null_parser = BS(open('2016-11-15 16:11:06.167554_朴施妍1114生日快乐.html', 'r').read(), "html.parser")
-                    print >>fw, baidu_parser  # save the unknow html
+                    # prevent UnicodeEncodeError: 'ascii' codec can't encode characters in position: ordinal not in range(128)
+                    print >>fw, baidu_parser.text.encode("utf8")  # save the unknow html
             break # success and jump out of loop
         except Timeout as e:
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), ERROR_MSG_DICT[NETWORK_TIMEOUT],
-            handle_sleep(5*attempt)
+            handle_sleep(10*attempt)
         except ConnectionError as e:
             # traceback.print_exc()
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), ERROR_MSG_DICT[NETWORK_CONNECTION_ERROR],
-            handle_sleep(5*attempt)
+            handle_sleep(10*attempt)
         except ProxyError as e:
             # traceback.print_exc()
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), ERROR_MSG_DICT[NETWORK_PROXY_ERROR],
-            handle_proxy_error(5*attempt)
+            handle_proxy_error(10*attempt)
         except Exception as e:
             traceback.print_exc()
-            # change_tunnel()  # Change IP tunnel of Abuyun
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Parsed topic %s Failed..." % keyword
-            handle_sleep(5*attempt)
+            handle_sleep(10*attempt)
     return {"err_no": err_no, "err_msg": err_msg, "data": data}
 
 
