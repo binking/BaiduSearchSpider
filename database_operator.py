@@ -105,19 +105,19 @@ def read_topics_from_db(conn, start_date):
     Read unchecked topics from database, return list of topics
     param start_date(str): YYYY-MM-DD
     """
-    # select_topic = """
-    #    SELECT DISTINCT title FROM topicinfo
-    #    WHERE theme LIKE '新浪微博_热门话题%'
-    #    AND STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") > '{}'
-    #    ORDER BY STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s")
-    #""".format(start_date)
     select_topic = """
         SELECT DISTINCT title FROM topicinfo
         WHERE theme LIKE '新浪微博_热门话题%'
-        AND STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") > '2016-11-01'
-        AND STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") < '2016-11-10'
-        ORDER BY STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") DESC
-    """
+        AND STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") > '{}'
+        ORDER BY STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s")
+    """.format(start_date)
+    #select_topic = """
+    #    SELECT DISTINCT title FROM topicinfo
+    #    WHERE theme LIKE '新浪微博_热门话题%'
+    #    AND STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") > '2016-11-01'
+    #    AND STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") < '2016-11-10'
+    #    ORDER BY STR_TO_DATE(createdate, "%Y-%m-%d %H:%i:%s") DESC
+    #"""
     try:
         cursor = conn.cursor()
         # read search keywords from table topicinfo

@@ -3,6 +3,11 @@ import time, traceback
 from datetime import datetime as dt, timedelta
 from abuyun_proxy import change_tunnel
 
+def wrap_print(tag, center, repeat=10):
+    print tag * repeat,
+    print center,
+    print tag * repeat
+
 
 def handle_sleep(seconds):
     print "Sleeping %d seconds " % seconds, 'zZ'*10

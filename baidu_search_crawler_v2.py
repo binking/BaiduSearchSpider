@@ -56,14 +56,13 @@ def create_processes(func, args, concurrency):
         sub_proc.start()
 
 
-def add_topic_jobs(target):
+def add_topic_jobs(target, start_date):
     todo = 0
-    one_week_ago = (dt.today() - timedelta(6)).strftime("%Y-%m-%d")
     try:
         conn = connect_database()
         if not conn:
             return False
-        list_of_kw = read_topics_from_db(conn, one_week_ago)
+        list_of_kw = read_topics_from_db(conn, start_date)
         for kw in list_of_kw:
             todo += 1
             target.put(kw)
@@ -87,9 +86,12 @@ def run_all_worker():
         create_processes(topic_db_writer, (topic_results,), 2)
 
         cp = mp.current_process()
+        one_week_ago = (dt.today() - timedelta(6)).strftime("%Y-%m-%d")
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
-        num_of_topics = add_topic_jobs(target=topic_jobs)
-        print "<"*10, "There are %d topics to process" % num_of_topics, ">"*10
+        num_of_topics = add_topic_jobs(target=topic_jobs, one_week_ago)
+        print "<"*10, 
+        print "There are %d topics to process from %s" % (num_of_topics, one_week_ago), 
+        print ">"*10
         topic_jobs.join()
         topic_results.join()
 
