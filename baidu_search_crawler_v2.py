@@ -124,4 +124,4 @@ if __name__=="__main__":
     start = time.time()
     run_all_worker()
     # test_parse_baidu_results()
-    print "*"*10, "Total Scrping Baidu Time Consumed : %d seconds" % (time.time() - start), "*"*10
+    print "*"*10, "Total Scraping Baidu Time Consumed : %d seconds" % (time.time() - start), "*"*10
