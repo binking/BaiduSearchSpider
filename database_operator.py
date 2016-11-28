@@ -109,8 +109,8 @@ def read_topics_from_db(conn, start_date):
     """
     select_topic = """
         SELECT DISTINCT title FROM topicinfo
-        WHERE theme LIKE '新浪微博_热门话题%'
-        AND createdate > '{}'
+        -- WHERE theme LIKE '新浪微博_热门话题%'
+        WHERE createdate > '{}'
         ORDER BY createdate
     """.format(start_date)
     #select_topic = """
