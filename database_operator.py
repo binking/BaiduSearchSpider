@@ -7,15 +7,24 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 MYSQL_GONE_ERROR = -100
-# MYSQL_SERVER_HOST = "123.206.64.22"
-# MYSQL_SERVER_HOST = "192.168.1.103"
-MYSQL_SERVER_HOST = "10.66.110.147"
-# MYSQL_SERVER_PORT = 3306
-MYSQL_SERVER_PASS = "Crawler20161231"
-# MYSQL_SERVER_PASS = "Crawler@test1"
-MYSQL_SERVER_USER = 'web'
-MYSQL_SERVER_BASE = 'webcrawler'
-MYSQL_SERVER_CSET = 'utf8'
+OUTER_MYSQL = {
+    'host': '582af38b773d1.bj.cdb.myqcloud.com',
+    'port': 14811,
+    'db': 'webcrawler',
+    'user': 'web',
+    'passwd': "Crawler20161231",
+    'charset': 'utf8',
+    'connect_timeout': 20,
+}
+QCLOUD_MYSQL = {
+    'host': '10.66.110.147',
+    'port': '3306', 
+    'db': 'web',
+    'user': 'webcrawler',
+    'passwd': 'Crawler20161231',
+    'charset': 'utf8',
+    'connect_timeout': 20, 
+}
 
 def connect_database():
     """
@@ -26,14 +35,7 @@ def connect_database():
         seconds = 3*attempt
         print "@"*20, "Connecting database at %d-th time..." % attempt
         try:
-            WEBCRAWLER_DB_CONN = mdb.connect(
-                host=MYSQL_SERVER_HOST, 
-                user=MYSQL_SERVER_USER, 
-                passwd=MYSQL_SERVER_PASS, 
-                db=MYSQL_SERVER_BASE,
-                charset=MYSQL_SERVER_CSET,
-                connect_timeout=20
-            )
+            WEBCRAWLER_DB_CONN = mdb.connect(**QCLOUD_MYSQL)
             return WEBCRAWLER_DB_CONN
         except mdb.OperationalError as e:
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Sleep %s seconds cuz we can't connect MySQL..." % seconds
