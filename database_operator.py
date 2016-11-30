@@ -1,6 +1,6 @@
 #coding=utf-8
 import sys, time
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 import MySQLdb as mdb
 import traceback
 reload(sys)
@@ -104,18 +104,24 @@ def write_baidu_topic_into_db(conn, topic_info):
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write topic failed"
     return is_succeed
 
-
-def read_topics_from_db(conn, start_date):
+def read_topics_from_db(conn, start_date, end_date, interval):
     """
     Read unchecked topics from database, return list of topics
     param start_date(str): YYYY-MM-DD
     """
-    select_topic = """
+    select_topic_sql = """
         SELECT DISTINCT title FROM topicinfo
         -- WHERE theme LIKE '新浪微博_热门话题%'
-        WHERE createdate > '{}'
-        ORDER BY createdate
-    """.format(start_date)
+        where createdate > '{fr}'
+        and createdate < '{to}'
+        ORDER BY createdate DESC 
+    """
+    if interval:
+        days_ago = (dt.today() - timedelta(interval)).strftime("%Y-%m-%d")
+        next_day = (dt.today() + timedelta(1)).strftime("%Y-%m-%d")
+        select_topic = select_topic_sql.format(fr=days_ago, to=next_day)
+    else:
+        select_topic = select_topic_sql.format(fr=start_date, to=end_date)
     #select_topic = """
     #    SELECT DISTINCT title FROM topicinfo
     #    WHERE theme LIKE '新浪微博_热门话题%'
