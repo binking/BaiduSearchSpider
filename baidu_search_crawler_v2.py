@@ -7,6 +7,7 @@ import traceback
 from datetime import datetime as dt, timedelta
 import MySQLdb as mdb
 import multiprocessing as mp
+from utils import create_processes
 from baidu_spider_v2 import parse_baidu_search_page_v2
 from database_operator import (
     connect_database,
@@ -51,13 +52,6 @@ def topic_db_writer(topic_results):
             print dt.now().strftime("%Y-%m-%d %H:%M:%S")
         finally:
             conn.close()
-    
-
-def create_processes(func, args, concurrency):
-    for _ in range(concurrency):
-        sub_proc = mp.Process(target=func, args=args)
-        sub_proc.daemon = True
-        sub_proc.start()
 
 
 def add_topic_jobs(target, start_date, end_date, interval):

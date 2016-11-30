@@ -1,5 +1,7 @@
 #coding=utf-8
-import time, traceback
+import time
+import traceback
+import multiprocessing as mp
 from datetime import datetime as dt, timedelta
 from abuyun_proxy import change_tunnel
 
@@ -61,3 +63,10 @@ def curl_str2post_data(baidu_curl):
         print "!"*20, "Parsed cURL Failed"
         traceback.print_exc()
     return url, post_data
+
+
+def create_processes(func, args, concurrency):
+    for _ in range(concurrency):
+        sub_proc = mp.Process(target=func, args=args)
+        sub_proc.daemon = True
+        sub_proc.start()
