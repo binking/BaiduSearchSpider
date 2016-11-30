@@ -133,8 +133,7 @@ def read_topics_from_db(conn, start_date, end_date, interval):
         cursor = conn.cursor()
         # read search keywords from table topicinfo
         cursor.execute(select_topic)  # filter by date: >_< , include >, exclude <
-        topicinfo_res = cursor.fetchall()
-        for res in topicinfo_res:
+        for res in cursor.fetchall():
             yield res[0]
         # print "$"*20, "There are %d topics to process" % len(todo_topic_list)
     except Exception as e:
