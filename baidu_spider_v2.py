@@ -62,7 +62,7 @@ def parse_baidu_search_page_v2(keyword, date_range, proxy={},num_tries=3, wait_t
                     err_no = SUCCESSED
                     err_msg = ERROR_MSG_DICT[SUCCESSED]
             else:  # wrong result
-                with open('./html/Baidu_%s_%s.html' % (keyword, dt.now()), 'w') as fw:
+                with open('./html/Baidu_%s_%s.html' % (keyword.encode('utf8'), dt.now()), 'w') as fw:
                     # null_parser = BS(open('2016-11-15 16:11:06.167554_朴施妍1114生日快乐.html', 'r').read(), "html.parser")
                     # prevent UnicodeEncodeError: 'ascii' codec can't encode characters in position: ordinal not in range(128)
                     print >>fw, r.text.encode("utf8")  # save the unknow html

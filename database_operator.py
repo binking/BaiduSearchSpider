@@ -18,13 +18,14 @@ OUTER_MYSQL = {
 }
 QCLOUD_MYSQL = {
     'host': '10.66.110.147',
-    'port': '3306', 
-    'db': 'web',
-    'user': 'webcrawler',
+    'port': 3306,
+    'db': 'webcrawler',
+    'user': 'web',
     'passwd': 'Crawler20161231',
     'charset': 'utf8',
-    'connect_timeout': 20, 
+    'connect_timeout': 20,
 }
+
 
 def connect_database():
     """
@@ -33,7 +34,6 @@ def connect_database():
     attempt = 1
     while True:
         seconds = 3*attempt
-        print "@"*20, "Connecting database at %d-th time..." % attempt
         try:
             WEBCRAWLER_DB_CONN = mdb.connect(**QCLOUD_MYSQL)
             return WEBCRAWLER_DB_CONN
@@ -43,6 +43,7 @@ def connect_database():
             traceback.print_exc()
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Sleep %s cuz unknown connecting database error." % seconds
         attempt += 1
+        print "@"*10, "Connecting database at %d-th time..." % attempt
         time.sleep(seconds)
   
 
@@ -83,15 +84,15 @@ def write_baidu_topic_into_db(conn, topic_info):
             print "\nInserting ",
             cursor.execute(insert_new_topic)
             conn.commit()
-        print "$"*20, "Write Baidu topic succeeded..."
+        print "$"*10, "Write Baidu topic succeeded..."
     except (mdb.ProgrammingError, mdb.OperationalError) as e:
         traceback.print_exc()
         is_succeed = False
-        if 'MySQL server has gone away' in e.message:
+        if 'MySQL server has gone away' in str(e):
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "MySQL server has gone away"
-        elif 'Deadlock found when trying to get lock' in e.message:
+        elif 'Deadlock found when trying to get lock' in str(e):
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "You did not solve dead lock"
-        elif 'Lost connection to MySQL server' in e.message:
+        elif 'Lost connection to MySQL server' in str(e):
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Lost connection to MySQL server"
         elif e.args[0] in [1064, 1366]:
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Wrong Tpoic String"
