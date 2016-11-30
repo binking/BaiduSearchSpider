@@ -102,7 +102,7 @@ def run_all_worker(date_start, date_end, days_inter):
             interval=days_inter
         )
         print "<"*10, 
-        print "There are %d topics to process from %s" % (num_of_topics, one_week_ago), 
+        print "There are %d topics to process" % (num_of_topics), 
         print ">"*10
         topic_jobs.join()
         topic_results.join()
