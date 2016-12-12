@@ -5,6 +5,7 @@ import json, traceback, bs4
 from datetime import datetime as dt, timedelta
 from urlparse import urlparse, parse_qs
 from bs4 import BeautifulSoup as bs
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from config import *
 from utils import *
 from requests.exceptions import (
@@ -14,6 +15,7 @@ from requests.exceptions import (
     ConnectTimeout,
 )
 
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
