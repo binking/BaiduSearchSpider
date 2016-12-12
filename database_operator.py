@@ -60,7 +60,7 @@ def write_baidu_topic_into_db(conn, topic_info):
     # top_url = topic_info.get('top_url', '')
     # top_title = topic_info.get('top_title', '')
     date_range = topic_info.get('date_range', '')
-    hit_num = topic_info.get('hit_num', -1)
+    hit_num = topic_info.get('hit_num', 0)
 
     deprecate_topic = """UPDATE baidusearchtopic SET is_up2date='N'
         WHERE search_keyword=%s AND date_range=%s AND is_up2date='Y'
