@@ -42,7 +42,7 @@ def parse_baidu_search_page_v2(keyword, date_range, proxy={},num_tries=3, wait_t
               "date_range": date_range, "hit_num": 0}
     for attempt in range(1, num_tries+1):
         try:
-            r = requests.get(url, params=data, headers=HEADERS, proxies=proxy, timeout=wait_time)
+            r = requests.get(url, verify=False, params=data, headers=HEADERS, proxies=proxy, timeout=wait_time)
             baidu_parser = bs(r.text, "html.parser")
             none_res_div = baidu_parser.find("div", {"class": "content_none"})
             if none_res_div:  # no search result
@@ -82,6 +82,7 @@ def parse_baidu_search_page_v2(keyword, date_range, proxy={},num_tries=3, wait_t
             traceback.print_exc()
             print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Parsed topic %s Failed..." % keyword
             handle_sleep(5*attempt)
+        print data
     return {"err_no": err_no, "err_msg": err_msg, "data": data}
 
 
